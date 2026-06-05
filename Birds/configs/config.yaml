@@ -1,0 +1,35 @@
+# Bird Diffusion Model - CUB-200-2011 Configuration
+
+data:
+  dataset: "CUB-200-2011"
+  # data_dir must contain a CUB_200_2011/ subfolder after extraction
+  data_dir: "./data"
+  img_size: 64           # Native CUB images are 200-500px; we resize to 64
+                          # Bump to 128 if you have a GPU with ≥8 GB VRAM
+  batch_size: 64          # 5080 has 16GB VRAM, 32 is undershooting it
+  num_workers: 8          # more CPU threads feeding the GPU
+  use_both_splits: true   # Merge train+test → ~11,788 images (recommended)
+
+diffusion:
+  T: 300                  # Timesteps; 1000 gives sharper results but slower
+  beta_start: 0.0001
+  beta_end:   0.04
+  schedule: "linear"      # linear is more stable; cosine can collapse early
+
+model:
+  image_channels: 3
+  down_channels: [64, 128, 256, 512, 1024]
+  up_channels:   [1024, 512, 256, 128, 64]
+  time_emb_dim:  256      # Larger than tutorial default (32) for better
+                          # timestep discrimination across T=300 steps
+
+training:
+  epochs: 500             # ~300 for rough birds, ~500 for clear shapes
+  lr: 0.0002
+  save_every: 50          # Save checkpoint every N epochs
+  sample_every: 10        # Generate sample strip every N epochs
+  checkpoint_dir: "./checkpoints"
+  results_dir: "./results"
+
+sampling:
+  num_images: 10          # Frames in the denoising strip
